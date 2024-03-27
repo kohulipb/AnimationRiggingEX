@@ -1,104 +1,147 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Animations;
 using UnityEngine.Animations.Rigging;
+using UnityEngine;
+using System.Collections;
 
+using System.Collections.Generic;
+
+using Unity.VisualScripting;
+
+using UnityEngine;
+
+using UnityEngine.AI;
+
+using UnityEngine.Animations;
+
+using UnityEngine.Animations.Rigging;
+ 
 public class PlayerController : MonoBehaviour
+
 {
+
     [SerializeField] Animator animator;
 
-    [SerializeField] LayerMask raycastLayers;
     private NavMeshAgent agent;
+
+    [SerializeField] LayerMask raycastLayers;
 
     [SerializeField] MultiAimConstraint headAim;
 
-    [SerializeField] GameObject interestingObjects;
+    [SerializeField] GameObject interestingObject;
+
+
+    Vector3 focusObjectOrigPos;
+
+    [SerializeField] Transform focusObject;
+
+
     private void Awake()
+
     {
+
         agent = GetComponent<NavMeshAgent>();
+
+        focusObjectOrigPos = focusObject.position;
+
     }
+
     private void Update()
+
     {
+
         if (Input.GetMouseButtonDown(0))
+
         {
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
             RaycastHit hit;
-            if(Physics.Raycast(ray, out hit, raycastLayers))
+
+            if (Physics.Raycast(ray, out hit, 200, raycastLayers))
+
             {
+
                 agent.destination = hit.point;
+
             }
 
         }
 
         if (agent.remainingDistance > agent.stoppingDistance)
+
         {
+
             animator.SetBool("isWalking", true);
+
         }
+
         else
+
         {
+
             animator.SetBool("isWalking", false);
+
         }
 
-        if (interestingObjects)
+
+        if (interestingObject)
+
         {
-            AddNewSource(headAim, interestingObjects.transform, 1f);
+
+            focusObject.position = interestingObject.transform.position;
+
         }
+
         else
+
         {
-            RemoveSource(headAim);
+
+            focusObject.position = focusObjectOrigPos;
+
         }
-    }
-
-    void AddNewSource(MultiAimConstraint constraint, Transform sourceObject, float sourceWeight)
-    {
-        WeightedTransform weightedTransform = new WeightedTransform(sourceObject, sourceWeight);
-        WeightedTransformArray sourceObjects = constraint.data.sourceObjects;
-        sourceObjects.Clear();
-        sourceObjects.Add(weightedTransform);
-        constraint.data.sourceObjects = sourceObjects;
-    }
-
-    void RemoveSource(MultiAimConstraint constraint)
-    {
-        WeightedTransformArray sourceObjects = constraint.data.sourceObjects;
-        sourceObjects.Clear();
-        constraint.data.sourceObjects = sourceObjects;
 
     }
+
+
 
     private void OnTriggerEnter(Collider other)
+
     {
+
         if (other.gameObject.CompareTag("Interest"))
+
         {
 
-            if(interestingObjects != other.gameObject)
-            {
-                //if(Vector3.Distance(transform.position, other.transform.position) < Vector3.Distance(transform.position, interestingObjects.transform.position))
-                //{
+            if (interestingObject != other.gameObject)
 
-                //}
-                interestingObjects = other.gameObject;
+            {
+
+                interestingObject = other.gameObject;
+
             }
 
         }
+
     }
 
     private void OnTriggerExit(Collider other)
+
     {
+
         if (other.gameObject.CompareTag("Interest"))
+
         {
 
-            if (interestingObjects == other.gameObject)
-            {
-                //if(Vector3.Distance(transform.position, other.transform.position) < Vector3.Distance(transform.position, interestingObjects.transform.position))
-                //{
+            if (interestingObject == other.gameObject)
 
-                //}
-                interestingObjects = null;
+            {
+
+                interestingObject = null;
+
             }
 
         }
+
     }
+
 }
